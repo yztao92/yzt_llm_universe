@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from typing import Dict, List, Any
 
-
 from langchain.embeddings.base import Embeddings
 from langchain.pydantic_v1 import BaseModel, root_validator
 
@@ -15,16 +14,14 @@ class ZhipuAIEmbeddings(BaseModel, Embeddings):
     client: Any
     """`zhipuai.ZhipuAI"""
 
-    @root_validator()
+    @root_validator(allow_reuse=True)
     def validate_environment(cls, values: Dict) -> Dict:
         """
         实例化ZhipuAI为values["client"]
 
         Args:
-
             values (Dict): 包含配置信息的字典，必须包含 client 的字段.
         Returns:
-
             values (Dict): 包含配置信息的字典。如果环境中有zhipuai库，则将返回实例化的ZhipuAI类；否则将报错 'ModuleNotFoundError: No module named 'zhipuai''.
         """
         from zhipuai import ZhipuAI
@@ -57,7 +54,6 @@ class ZhipuAIEmbeddings(BaseModel, Embeddings):
             List[List[float]]: 输入列表中每个文档的 embedding 列表。每个 embedding 都表示为一个浮点值列表。
         """
         return [self.embed_query(text) for text in texts]
-    
     
     async def aembed_documents(self, texts: List[str]) -> List[List[float]]:
         """Asynchronous Embed search docs."""
