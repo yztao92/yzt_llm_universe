@@ -13,7 +13,7 @@ _ = load_dotenv(find_dotenv())
 
 # 获取folder_path下所有文件路径，储存在file_paths里
 file_paths = []
-folder_path = '/Users/yangzhentao/Documents/AI/llm-universe/data_base/knowledge_db'
+folder_path = '/Users/yangzhentao/Github/yzt_llm_universe/data_base/knowledge_db'
 for root, dirs, files in os.walk(folder_path):
     for file in files:
         file_path = os.path.join(root, file)
@@ -67,7 +67,7 @@ embedding = ZhipuAIEmbeddings()
 # embedding = QianfanEmbeddingsEndpoint()
 
 # 定义持久化路径
-persist_directory = '/Users/yangzhentao/Documents/AI/llm-universe/data_base/vector_db/chroma'
+persist_directory = '/Users/yangzhentao/Github/yzt_llm_universe/data_base/vector_db/chroma'
 
 
 from langchain.vectorstores.chroma import Chroma

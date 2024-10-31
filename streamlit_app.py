@@ -1,22 +1,22 @@
+import os
 import streamlit as st
-
-import sys
-sys.path.append("/Users/yangzhentao/Documents/AI/llm-universe/notebook/C3 搭建知识库") # 将父目录放入系统路径中
-#--------------------------------------------------------------------------------------------------------------------------------
-# 使用智谱 Embedding API，注意，需要将上一章实现的封装代码下载到本地
+from zhipuai_llm import ZhipuAILLM
 from zhipuai_embedding import ZhipuAIEmbeddings
 from langchain.vectorstores.chroma import Chroma
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain
+from langchain.prompts import PromptTemplate
+from langchain.chains import RetrievalQA
 
-from zhipuai_llm import ZhipuAILLM
-
-
+def set_api_key(api_key):
+    os.environ["ZHIPUAI_API_KEY"] = api_key
 
 #构建向量库
 def get_vectordb():
     # 定义 Embeddings
     embedding = ZhipuAIEmbeddings()
     # 向量数据库持久化路径
-    persist_directory = '/Users/yangzhentao/Documents/AI/llm-universe/data_base/vector_db/chroma'
+    persist_directory = '/Users/yangzhentao/Github/yzt_llm_universe/data_base/vector_db/chroma'
     # 加载数据库
     vectordb = Chroma(
         persist_directory=persist_directory,  # 允许我们将persist_directory目录保存到磁盘上
@@ -26,12 +26,14 @@ def get_vectordb():
 
 #定义返回的值
 def generate_response(input_text, api_key):
+    set_api_key(api_key)
     zhipuai_model = ZhipuAILLM(model="glm-4", temperature=0.5, api_key=api_key)
     response = zhipuai_model(input_text)
     return response
 
 #带有历史记录的问答链
-def get_chat_qa_chain(question:str,api_key:str):
+def get_chat_qa_chain(question,api_key):
+    set_api_key(api_key)
     vectordb = get_vectordb()
     zhipuai_model = ZhipuAILLM(model="glm-4", temperature=0.5, api_key=api_key)
     memory = ConversationBufferMemory(
@@ -48,7 +50,8 @@ def get_chat_qa_chain(question:str,api_key:str):
     return result['answer']
 
 #不带历史记录的问答链
-def get_qa_chain(question:str,api_key:str):
+def get_qa_chain(question,api_key):
+    set_api_key(api_key)
     vectordb = get_vectordb()
     zhipuai_model = ZhipuAILLM(model="glm-4", temperature=0.5, api_key=api_key)
     template = """使用以下上下文来回答最后的问题。如果你不知道答案，就说你不知道，不要试图编造答
@@ -68,26 +71,28 @@ def get_qa_chain(question:str,api_key:str):
 # Streamlit 应用程序界面
 def main():
     st.title('YZT_AI')
-    zhipuai_api_key = st.sidebar.text_input('Zhipuai API Key', type='password')
+    api_key = st.sidebar.text_input('Zhipuai API Key', type='password')
 
     #添加一个单选按钮部件st.radio，选择进行问答的模式：
-    selected_method = st.radio(
+    selected_method = st.selectbox(
         "你想选择哪种模式进行对话？",
-        ["None", "qa_chain", "chat_qa_chain"],
-        captions = ["不使用检索问答的普通模式", "不带历史记录的检索问答模式", "带历史记录的检索问答模式"])
-    
-
+    ["普通模式", "不带历史记录的问答模式", "带历史记录的对话模式"]
+    )
     # 用于跟踪对话历史
     if 'messages' not in st.session_state:
         st.session_state.messages = []
 
-    messages = st.container(height=860)
+    messages = st.container(height=600)
     if prompt := st.chat_input("你好,我有什么可以帮你的"):
         # 将用户输入添加到对话历史中
         st.session_state.messages.append({"role": "user", "text": prompt})
-
-        # 调用 respond 函数获取回答
-        answer = generate_response(prompt, zhipuai_api_key)
+        # 根据选项调用函数获取回答
+        if selected_method == "普通模式":
+            answer = generate_response(prompt, api_key)
+        elif selected_method == "不带历史记录的问答模式":
+            answer = get_qa_chain(prompt, api_key)
+        elif selected_method == "带历史记录的对话模式":
+            answer = get_chat_qa_chain(prompt, api_key)
         # 检查回答是否为 None
         if answer is not None:
             # 将LLM的回答添加到对话历史中

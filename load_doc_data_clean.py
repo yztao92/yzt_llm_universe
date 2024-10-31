@@ -9,8 +9,8 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())
 from langchain.document_loaders.pdf import PyMuPDFLoader
 
-# 创建一个 PyMuPDFLoader Class 实例，输入为待加载的 pdf 文档路径
-loader = PyMuPDFLoader("/Users/yangzhentao/Documents/AI/llm-universe/data_base/knowledge_db/pumkin_book/pumpkin_book.pdf")
+# 创建一个 PyMuPDFLoader Class 实/例，输入为待加载的 pdf 文档路径
+loader = PyMuPDFLoader("/Users/yangzhentao/Github/yzt_llm_universe/data_base/knowledge_db/pumkin_book/pumpkin_book.pdf")
 
 # 调用 PyMuPDFLoader Class 的函数 load 对 pdf 文件进行加载
 pdf_pages = loader.load()
